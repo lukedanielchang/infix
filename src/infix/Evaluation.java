@@ -16,18 +16,30 @@ import javax.swing.JOptionPane;
 public class Evaluation {
 
     public boolean isEmpty = false;
-    
     public String newResult = "this will be the result";
-    public Stack operatorS = new Stack();
-    public Stack operandS = new Stack();
-
+    Stack<Integer> values = new Stack<Integer>();
+    Stack<Character> operators = new Stack<Character>();
+       
     
      public String evaluate(String fromInput) {
-            StringTokenizer tokenString = new StringTokenizer(fromInput);
+            char[] tokens = fromInput.toCharArray();
             
-            for (int i =1; tokenString.hasMoreTokens(); i++){
-                System.out.println("Token " + i +":" + tokenString.nextToken());
-            }
-                return newResult;
-    }
+            for(int i=0; i <tokens.length; i++){        
+                //skip white spaces
+                if (tokens[i] == ' ')
+                continue;
+                
+                System.out.println(tokens[i]);
+     }
+            
+               return newResult;
+     }
+                
+            
+             
+    
+     
+     public static boolean isOperator(char c){
+         return( (c=='+') || (c=='/') ||(c=='*')||(c=='/'));   
+     }
 }
