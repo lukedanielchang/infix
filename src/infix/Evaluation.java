@@ -5,81 +5,193 @@
  */
 package infix;
 
+import java.util.ArrayList;
+import java.util.EmptyStackException;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Stack;
-import java.util.StringTokenizer;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+/**
+ *
+ * @author Beach Haven
+ */
 public class Evaluation {
 
-    public boolean isEmpty = false;
-    public String newResult = "";
-    Stack<Integer> operands = new Stack<Integer>();
-    Stack<Character> operators = new Stack<Character>();
+    public static String calculateExpression(String expression) {
 
-    public String evaluate(String fromInput) {
-        char[] token = fromInput.toCharArray();
+        Stack<Long> operandStack = new Stack<>();
+        Stack<Character> operatorStack = new Stack<>();
 
-        for (int i = 1; i < token.length; i++) {
-            //skip white spaces
-            if (token[i] == ' ') {
-                continue;
-            } else if (token[i] >= '0' && token[i] <= '9') {
-                //cast token[i] to string buffer to allow Int parsing to put into operands stack
-                StringBuffer operandsBuff = new StringBuffer();
-                while (i < token.length && token[i] >= '0' && token[i] <= '9') {
-                    operandsBuff.append(token[i++]);
-                }
-                operands.push(Integer.parseInt(operandsBuff.toString()));
-            } else if (token[i] == '(') {
-                operators.push(token[i]);
-
-            } else if (token[i] == ')') {
-                operators.push(token[i]);
-                while (operators.peek() != '(') {
-                    operands.push(doOp(operators.pop(), operands.pop(), operands.pop()));
-                }
-            } else if ((token[i] == '+') || (token[i] == '-') || (token[i] == '*') || (token[i] == '/')) {
-                while (!operators.empty() && opPrecedence(token[i], operators.peek())) {
-                    operands.push(doOp(operators.pop(), operands.pop(), operands.pop()));
-                    operators.push(token[i]);
-
-                }
-            }
-            while (!operators.empty()) {
-                operands.push(doOp(operators.pop(), operands.pop(), operands.pop()));
-            }
-            System.out.println(i);
+        if (!isValidExpression(expression)) {
+            System.out.println("Not a valid expression to evaluate");
+            return "0";
         }
-        return operands.pop().toString();
+
+        int i = 0;
+        String currentInteger = null;
+        while (i < expression.length()) {
+
+            // System.out.println(expression.charAt(i));
+            if (expression.charAt(i) >= '0' && expression.charAt(i) <= '9') {
+
+                currentInteger = expression.charAt(i) + "";
+                i++;
+                while (i != expression.length() && (expression.charAt(i) >= '0' && expression.charAt(i) <= '9')) {
+                    currentInteger = currentInteger + expression.charAt(i);
+                    i++;
+                }
+
+                operandStack.push(Long.parseLong(currentInteger));
+            } else {
+
+                if (expression.charAt(i) == ')') {
+
+                    while (operatorStack.peek() != '(') {
+                        performArithmeticOperation(operandStack, operatorStack);
+                    }
+                    operatorStack.pop();
+                } else {
+
+                    Character currentOperator = expression.charAt(i);
+                    Character lastOperator = (operatorStack.isEmpty() ? null : operatorStack.peek());
+
+                    if (lastOperator != null && checkPrecedence(currentOperator, lastOperator)) {
+                        performArithmeticOperation(operandStack, operatorStack);
+                    }
+                    operatorStack.push(expression.charAt(i));
+
+                }
+                i++;
+            }
+
+        }
+
+        while (!operatorStack.isEmpty()) {
+            performArithmeticOperation(operandStack, operatorStack);
+        }
+
+        Long result = operandStack.pop();
+        return result.toString();
+
     }
 
-    public static boolean opPrecedence(char oper1, char oper2) {
-        if (oper2 == '(' || oper2 == ')') {
+    public static void performArithmeticOperation(Stack<Long> operandStack, Stack<Character> operatorStack) {
+        try {
+            long value1 = operandStack.pop();
+            long value2 = operandStack.pop();
+            char operator = operatorStack.pop();
+
+            long intermediateResult = arithmeticOperation(value1, value2, operator);
+            operandStack.push(intermediateResult);
+        } catch (EmptyStackException e) {
+            System.out.println("Not a valid expression to evaluate");
+            throw e;
+        }
+    }
+
+    public static boolean checkPrecedence(Character operator1, Character operator2) {
+
+        List<Character> precedenceList = new ArrayList<>();
+        precedenceList.add('(');
+        precedenceList.add(')');
+        precedenceList.add('/');
+        precedenceList.add('*');
+        precedenceList.add('%');
+        precedenceList.add('+');
+        precedenceList.add('-');
+
+        if (operator2 == '(') {
             return false;
         }
-        if ((oper1 == '*') || (oper1 == '/') && (oper2 == '+') || (oper2 == '-')) {
-            return false;
-        } else {
+
+        if (precedenceList.indexOf(operator1) > precedenceList.indexOf(operator2)) {
             return true;
+        } else {
+            return false;
         }
+
     }
 
-    public static int doOp(char op, int a, int b) {
-        switch (op) {
+    public static long arithmeticOperation(long value2, long value1, Character operator) {
+        JFrame errorFrame = new JFrame();
+        long result=0;
+
+        switch (operator) {
+
             case '+':
-            
-                return a + b;
+                result = value1 + value2;
+                break;
+
             case '-':
-                return a - b;
+                result = value1 - value2;
+                break;
+
             case '*':
-                return a * b;
+                result = value1 * value2;
+                break;
+
             case '/':
-                if (b == '0') {
-                    throw new ArithmeticException("Cannot divide by 0");
-                }
-                return a / b;
+               try {result = value1 / value2;
+               }
+               catch (ArithmeticException e) {
+                   JOptionPane.showMessageDialog(errorFrame, "You cannot divide by 0");
+               }
+                break;
+
+            case '%':
+                result = value1 % value2;
+                break;
+
+            default:
+                result = value1 + value2;
 
         }
-        return 0;
+        return result;
+    }
+
+    public static boolean isValidExpression(String expression) {
+
+        if ((!Character.isDigit(expression.charAt(0)) && !(expression.charAt(0) == '('))
+                || (!Character.isDigit(expression.charAt(expression.length() - 1)) && !(expression.charAt(expression.length() - 1) == ')'))) {
+            return false;
+        }
+
+        HashSet<Character> validCharactersSet = new HashSet<>();
+        validCharactersSet.add('*');
+        validCharactersSet.add('+');
+        validCharactersSet.add('-');
+        validCharactersSet.add('/');
+        validCharactersSet.add('%');
+        validCharactersSet.add('(');
+        validCharactersSet.add(')');
+
+        Stack<Character> validParenthesisCheck = new Stack<>();
+
+        for (int i = 0; i < expression.length(); i++) {
+
+            if (!Character.isDigit(expression.charAt(i)) && !validCharactersSet.contains(expression.charAt(i))) {
+                return false;
+            }
+
+            if (expression.charAt(i) == '(') {
+                validParenthesisCheck.push(expression.charAt(i));
+            }
+
+            if (expression.charAt(i) == ')') {
+
+                if (validParenthesisCheck.isEmpty()) {
+                    return false;
+                }
+                validParenthesisCheck.pop();
+            }
+        }
+
+        if (validParenthesisCheck.isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
