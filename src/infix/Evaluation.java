@@ -7,7 +7,6 @@ package infix;
 
 import java.util.ArrayList;
 import java.util.EmptyStackException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 import javax.swing.JFrame;
@@ -17,9 +16,9 @@ import javax.swing.JOptionPane;
  *
  * @author Beach Haven
  */
-public class Evaluation {
+public class Evaluation{
 
-    public static String calculateExpression(String expression) {
+    public static String calculateExpression(String expression) throws EvalExceptions {
 
         Stack<Long> operandStack = new Stack<>();
         Stack<Character> operatorStack = new Stack<>();
@@ -77,7 +76,7 @@ public class Evaluation {
 
     }
 
-    public static void performArithmeticOperation(Stack<Long> operandStack, Stack<Character> operatorStack) {
+    public static void performArithmeticOperation(Stack<Long> operandStack, Stack<Character> operatorStack) throws EvalExceptions {
         try {
             long value1 = operandStack.pop();
             long value2 = operandStack.pop();
@@ -86,8 +85,7 @@ public class Evaluation {
             long intermediateResult = arithmeticOperation(value1, value2, operator);
             operandStack.push(intermediateResult);
         } catch (EmptyStackException e) {
-            System.out.println("Not a valid expression to evaluate");
-            throw e;
+            throw new EvalExceptions("Not a Valid Expression");
         }
     }
 
@@ -114,8 +112,8 @@ public class Evaluation {
 
     }
 
-    public static long arithmeticOperation(long value2, long value1, Character operator) {
-        JFrame errorFrame = new JFrame();
+    public static long arithmeticOperation(long value2, long value1, Character operator) throws EvalExceptions{
+        
         long result = 0;
 
         switch (operator) {
@@ -133,10 +131,11 @@ public class Evaluation {
                 break;
 
             case '/':
-                try {
+               if(value2>0){
                     result = value1 / value2;
-                } catch (ArithmeticException e) {
-                    JOptionPane.showMessageDialog(errorFrame, "You cannot divide by 0");
+                } 
+               else{
+                   throw new EvalExceptions("You cannot divide by 0");
                 }
                 break;
 
