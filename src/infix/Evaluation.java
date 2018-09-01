@@ -116,7 +116,7 @@ public class Evaluation {
 
     public static long arithmeticOperation(long value2, long value1, Character operator) {
         JFrame errorFrame = new JFrame();
-        long result=0;
+        long result = 0;
 
         switch (operator) {
 
@@ -133,11 +133,11 @@ public class Evaluation {
                 break;
 
             case '/':
-               try {result = value1 / value2;
-               }
-               catch (ArithmeticException e) {
-                   JOptionPane.showMessageDialog(errorFrame, "You cannot divide by 0");
-               }
+                try {
+                    result = value1 / value2;
+                } catch (ArithmeticException e) {
+                    JOptionPane.showMessageDialog(errorFrame, "You cannot divide by 0");
+                }
                 break;
 
             case '%':
@@ -158,7 +158,7 @@ public class Evaluation {
             return false;
         }
 
-        HashSet<Character> validCharactersSet = new HashSet<>();
+        ArrayList<Character> validCharactersSet = new ArrayList<>();
         validCharactersSet.add('*');
         validCharactersSet.add('+');
         validCharactersSet.add('-');
